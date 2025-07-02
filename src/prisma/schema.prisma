@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DiscordAccounts {
+  discordId     String          @id
+  licenseCodeId Int             @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  licenseCode   LicenseCodes    @relation(fields: [licenseCodeId], references: [id])
+  steamAccounts SteamAccounts[]
+
+  @@map("discord_accounts")
+}
+
+model BoostedGame {
+  id           Int               @id @default(autoincrement())
+  appId        Int               @unique
+  name         String
+  totalBoosted Float             @default(0)
+  boosters     BoostedGameUser[]
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model BoostedGameUser {
+  id             Int            @id @default(autoincrement())
+  steamAccountId String
+  boostedGameId  Int
+  boostedGame    BoostedGame    @relation(fields: [boostedGameId], references: [id], onDelete: Cascade)
+  steamAccount   SteamAccounts  @relation(fields: [steamAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([steamAccountId, boostedGameId])
+}
+
+
+
+
+
+
+
+
+model SteamAccounts {
+  id              String          @id @default(cuid())
+  discordOwnerId  String
+  isRunning       Boolean         @default(false)
+  username        String          @unique
+  password        String
+  sharedSecret    String
+  refreshToken    Bytes
+  onlineStatus    Boolean         @default(true)
+  games           Bytes
+  totalHoursIdled Float           @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  discordOwner    DiscordAccounts @relation(fields: [discordOwnerId], references: [discordId])
+  boostedGames   BoostedGameUser[]
+
+  @@map("steam_accounts")
+}
+
+model LicenseType {
+  id               String         @id
+  name             String         @unique
+  maxSteamAccounts Int
+  maxSteamGames    Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  licenseCodes     LicenseCodes[]
+
+  @@map("license_type")
+}
+
+model LicenseCodes {
+  id             Int              @id @default(autoincrement())
+  code           String           @unique
+  licenseTypeId  String
+  isUsed         Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  discordAccount DiscordAccounts?
+  licenseType    LicenseType      @relation(fields: [licenseTypeId], references: [id])
+
+  @@map("license_codes")
+}

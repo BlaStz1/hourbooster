@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hour Booster – Pre-Launch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#dc2626" />
+  <style>
+    /* Base page & container */
+    body {
+      background: #111;
+      color: #f4f4f5;
+      font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; margin:0; padding:1rem;
+    }
+    .box {
+      width:100%; max-width:480px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding:2rem; text-align:center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    h1 {
+      font-size:1.75rem; margin-bottom:1.5rem;
+      color:#fff; letter-spacing:0.05em;
+    }
+    #countdown {
+      display:flex; gap:0.5rem; justify-content:center;
+      margin-bottom:2rem; font-family:'Courier New',monospace;
+    }
+    #countdown span {
+      min-width:2ch; text-align:center; display:inline-block;
+      border-radius:6px; padding:0.5rem 0.75rem;
+    }
+    form { display:flex; gap:0.5rem; justify-content:center; }
+    input, button {
+      border-radius:6px; padding:0.5rem 1rem; border:none;
+      font-family:'Courier New',monospace; font-size:1rem;
+    }
+    input {
+      background:#222; color:#fff; flex:1;
+    }
+    input::placeholder { color:#888; }
+    button {
+      background:#dc2626; color:#fff; cursor:pointer;
+      transition:background 0.2s;
+    }
+    button:hover { background:#b91c1c; }
+
+    /* ——— 20 Countdown Styles ——— */
+
+    /* STYLE 1: Red neon glow */
+    .style-1 span {
+      background:#1a1a1a; color:#ff3f5e;
+      text-shadow: 0 0 6px #ff3f5e;
+      border:1px solid #ff3f5e;
+    }
+
+    /* STYLE 2: Glassy red border */
+    .style-2 span {
+      background: rgba(255,255,255,0.02);
+      border:1px solid rgba(220,38,38,0.6);
+      color:#e4e4e7;
+    }
+
+    /* STYLE 3: Solid red blocks */
+    .style-3 span {
+      background:#dc2626; color:#fff;
+      border:1px solid #b91c1c;
+    }
+
+    /* STYLE 4: Inverted dark mode */
+    .style-4 span {
+      background:#fff; color:#111;
+      border:1px solid #ccc;
+    }
+
+    /* STYLE 5: Outline only */
+    .style-5 span {
+      background:transparent; color:#dc2626;
+      border:2px solid #dc2626;
+    }
+
+    /* STYLE 6: Subtle gradient */
+    .style-6 span {
+      background: linear-gradient(135deg,#dc2626,#f43f5e);
+      color:#fff; border:none;
+    }
+
+    /* STYLE 7: Soft shadow inset */
+    .style-7 span {
+      background:#1c1c1e; color:#f4f4f5;
+      border:1px solid #2c2c2e;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    }
+
+    /* STYLE 8: Double border */
+    .style-8 span {
+      background:#000; color:#dc2626;
+      border:2px solid #dc2626;
+      box-shadow: 0 0 0 2px rgba(220,38,38,0.4);
+    }
+
+    /* STYLE 9: Soft pastel highlight */
+    .style-9 span {
+      background:#dc26266e; color:#fff;
+      border:1px solid #dc2626;
+    }
+
+    /* STYLE 10: Neon inline underline */
+    .style-10 span {
+      background:transparent; color:#e4e4e7;
+      border-bottom:2px solid #ff3f5e;
+    }
+
+    /* STYLE 11: Dot grid background */
+    .style-11 span {
+      background: rgba(255,38,38,0.1)
+        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><circle cx="2" cy="2" r="1" fill="%23dc2626"/></svg>') center/auto;
+      color:#fff; border:1px solid #dc2626;
+    }
+
+    /* STYLE 12: Semi-circle top accent */
+    .style-12 span {
+      background:#1a1a1a; color:#dc2626;
+      border:1px solid #444; border-top:4px solid #dc2626;
+    }
+
+    /* STYLE 13: Skewed blocks */
+    .style-13 span {
+      background:#2a2a2a; color:#f4f4f5;
+      transform: skewX(-10deg);
+      border:1px solid #333;
+    }
+
+    /* STYLE 14: Dotted outline */
+    .style-14 span {
+      background:transparent; color:#e4e4e7;
+      border:2px dotted #dc2626;
+    }
+
+    /* STYLE 15: Label prefix */
+    .style-15 span::before {
+      content: attr(data-label) ' ';
+      font-size:0.75em; color:#888;
+    }
+    .style-15 span {
+      background:#1f1f1f; color:#dc2626;
+      border:1px solid #333;
+    }
+
+    /* STYLE 16: Inset neon */
+    .style-16 span {
+      background:#111; color:#e4e4f5;
+      border:1px solid #444;
+      box-shadow: inset 0 0 6px #ff3f5e;
+    }
+
+    /* STYLE 17: Faint vignette */
+    .style-17 span {
+      background:#1a1a1a; color:#fff;
+      border:1px solid #222;
+      box-shadow: 0 0 12px rgba(0,0,0,0.8);
+    }
+
+    /* STYLE 18: Ghost text */
+    .style-18 span {
+      background:transparent; color:rgba(255,255,255,0.3);
+      border:none; text-shadow: 0 0 2px rgba(255,255,255,0.5);
+    }
+
+    /* STYLE 19: Subtle chrome */
+    .style-19 span {
+      background: linear-gradient(145deg,#262626,#1a1a1a);
+      color:#e4e4e7; border:1px solid #333;
+    }
+
+    /* STYLE 20: Brushed metal */
+    .style-20 span {
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><pattern id="a" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="%23121212"/><path d="M0,0 l4,4 M-1,1 l2,2 M3,-1 l2,2" stroke="%23222222" stroke-width="1"/></pattern><rect width="100%" height="100%" fill="url(%23a)" /></svg>') center/cover;
+      color:#f4f4f5; border:1px solid #333;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Hour Booster — Launching In</h1>
+
+    <!-- Swap class="style-1" … "style-20" -->
+    <div id="countdown" class="style-15">
+      <span data-label="DAYS">00</span>:
+      <span data-label="HRS">00</span>:
+      <span data-label="MIN">00</span>:
+      <span data-label="SEC">00</span>
+    </div>
+
+    <form action="/login" method="POST">
+      <input
+        type="password"
+        name="password"
+        placeholder="Access Key"
+        required
+        autocomplete="off"
+      />
+      <button type="submit">Enter</button>
+    </form>
+  </div>
+
+  <script>
+    async function initCountdown() {
+      const res = await fetch('/api/launch-date');
+      const { launchDate } = await res.json();
+      if (!launchDate || isNaN(new Date(launchDate))) return;
+
+      const target = new Date(launchDate);
+      const parts = [...document.querySelectorAll('#countdown span')];
+
+      function update() {
+        const diff = target - new Date();
+        if (diff <= 0) return location.reload();
+
+        const [d,h,m,s] = [
+          Math.floor(diff/(1000*60*60*24)),
+          Math.floor((diff/(1000*60*60))%24),
+          Math.floor((diff/(1000*60))%60),
+          Math.floor((diff/1000)%60)
+        ].map(n => String(n).padStart(2,'0'));
+
+        [d,h,m,s].forEach((val,i) => {
+          parts[i].textContent = val;
+        });
+      }
+
+      update();
+      setInterval(update, 1000);
+    }
+    initCountdown();
+  </script>
+</body>
+</html>

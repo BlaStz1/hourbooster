@@ -1,0 +1,90 @@
+const { prisma } = require('./prisma.service');
+const { logger } = require('../helpers/logger.helper');
+
+class LicenseCode {
+  static async insert(codes, licenseType) {
+    try {
+      await prisma.$transaction(
+        codes.map((code) => (
+          prisma.licenseCodes.create({
+            data: {
+              code,
+              licenseType: {
+                connect: { id: licenseType },
+              },
+            },
+          })
+        )),
+      );
+    } catch (error) {
+      logger.error(error);
+      throw new Error('Failed to insert new license code to database');
+    }
+  }
+
+  static async getCode(licenseCode) {
+    try {
+      return await prisma.licenseCodes.findFirst({
+        where: {
+          code: licenseCode,
+        },
+        include: {
+          licenseType: true,
+        },
+      });
+    } catch (error) {
+      logger.error(error);
+      throw new Error('Failed to get license code from database');
+    }
+  }
+
+  static async getCodeById(licenseCodeId) {
+    try {
+      return await prisma.licenseCodes.findFirst({
+        where: {
+          id: licenseCodeId,
+        },
+        include: {
+          licenseType: true,
+        },
+      });
+    } catch (error) {
+      logger.error(error);
+      throw new Error('Failed to get license code from database');
+    }
+  }
+
+  static async updateCodeStatus(licenseCode, status) {
+    try {
+      return await prisma.licenseCodes.update({
+        where: { code: licenseCode },
+        data: { isUsed: status },
+      });
+    } catch (error) {
+      logger.error(error);
+      throw new Error('Failed to update license code status in database');
+    }
+  }
+
+  // ✅ New: Get all licenses, inactive ones first
+static async getAllLicenses() {
+  try {
+    return await prisma.licenseCodes.findMany({
+      include: {
+        licenseType: true, // <-- this includes the name like "Premium"
+      },
+      orderBy: {
+        isUsed: 'asc', // unused first
+      },
+    });
+  } catch (error) {
+    logger.error(error);
+    throw new Error('Failed to fetch all license codes');
+  }
+}
+
+
+
+}
+
+module.exports = LicenseCode;

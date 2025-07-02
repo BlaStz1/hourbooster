@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Hour Booster | Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/script.js"></script>
+  <meta name="theme-color" content="#dc2626">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    .feature-card {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 1rem;
+      transition: all .3s ease;
+    }
+    .section-heading {
+      font-size: 2.25rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #dc2626, #ff6868);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+    .section-heading::after {
+      content: '';
+      position: absolute;
+      bottom: -0.25rem;
+      left: 50%;
+      width: 3rem;
+      height: 0.25rem;
+      background: linear-gradient(90deg, #dc2626, #ff6868);
+      transform: translateX(-50%);
+      border-radius: 0.125rem;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(220,38,38,0.2);
+    }
+    .gradient-bg { background: linear-gradient(45deg, #dc2626, #b91c1c); color: white; }
+    .nav-blur { backdrop-filter: blur(16px); background: rgba(0,0,0,0.4); }
+    main { flex: 1; }
+    nav button.active { color: white; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 0.75rem; margin-top: 1rem; }
+  </style>
+</head>
+  <!-- <body
+    class="bg-black text-white max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-red-500"
+  > -->
+<body class="bg-[#0e0e10] text-white font-sans [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-red-500">
+<div id="loader" class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+  <div class="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+</div>
+
+    <nav class="fixed w-full z-50 top-0">
+    <div class="nav-blur bg-[#0e0e10] border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-14">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-700">Hour
+              Booster</span>
+          </div>
+
+          <!-- <div class="md:hidden">
+            <button onclick="toggleMobileMenu()" class="text-white p-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path class="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+          </div> -->
+
+          <div class="hidden md:flex gap-3">
+            <a href="/dashboard">
+              <button
+                class="bg-white/10 hover:bg-white/20 px-4 py-1 rounded-lg transition-all duration-300">Overview</button>
+            </a>
+            <a href="/dashboard/accounts">
+              <button
+                class="bg-white/10 hover:bg-white/20 px-4 py-1 rounded-lg transition-all duration-300">Accounts</button>
+            </a>
+            <a href="/dashboard/users">
+              <button
+                class="bg-white/10 hover:bg-white/20 px-4 py-1 rounded-lg transition-all duration-300">Users</button>
+            </a>
+            <a href="/dashboard/licenses">
+              <button
+                class="bg-white/10 hover:bg-white/20 px-4 py-1 rounded-lg transition-all duration-300">Licenses</button>
+            </a>
+            <a href="/dashboard/status">
+              <button
+                class="bg-white/10 hover:bg-white/20 px-4 py-1 rounded-lg transition-all duration-300">Status</button>
+            </a>
+
+
+          </div>
+
+          <div id="mobileMenu" class="hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 bg-black/50 rounded-lg mt-2">
+              <a href="#hero" class="block px-3 py-2 text-white/70 hover:text-white transition-colors">Home</a>
+              <a href="#features" class="block px-3 py-2 text-white/70 hover:text-white transition-colors">Features</a>
+              <a href="#commands" class="block px-3 py-2 text-white/70 hover:text-white transition-colors">Commands</a>
+            </div>
+          </div>
+        </div>
+      </div>
+  </nav>
+
+
+  <!-- Mobile Sidebar -->
+<div id="mobile-sidebar" class="fixed top-0 left-0 h-full w-64 bg-black/80 backdrop-blur-md border-r border-white/10 transform -translate-x-full transition-transform duration-300 z-50 lg:hidden">
+  <div class="p-6">
+    <button id="close-sidebar" class="text-white text-xl mb-6">✕</button>
+    <nav class="space-y-4">
+      <button data-target="dashboard" class="nav-tab block w-full text-left text-white/70 hover:text-white" data-route="/dashboard">Dashboard</button>
+      <button data-target="accounts" class="nav-tab block w-full text-left text-white/70 hover:text-white" data-route="/dashboard/accounts">Accounts</button>
+      <button data-target="users" class="nav-tab block w-full text-left text-white/70 hover:text-white" data-route="/dashboard/users">Users</button>
+      <button data-target="licenses" class="nav-tab block w-full text-left text-white/70 hover:text-white" data-route="/dashboard/licenses">Licenses</button>
+      <button data-target="overview" class="nav-tab block w-full text-left text-white/70 hover:text-white" data-route="/dashboard/overview">Overview</button>
+    </nav>
+  </div>
+</div>
+
+
+  <main class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex-1 overflow-hidden">
+    <!-- Dashboard -->
+    <section id="page-dashboard" class="hidden px-6 pt-28 sm:pt-20 md:pt-16">
+      <div class="text-center mb-6">
+        <h1 class="section-heading text-center mb-6">
+          Admin Overview
+        </h1>
+      </div>
+      
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 gap-6 text-white">
+  <!-- Total Users -->
+  <div class="feature-card p-6 flex items-center gap-4">
+    <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 text-2xl">
+      👤
+    </div>
+    <div>
+      <h3 class="text-sm uppercase text-white/60">Total Users</h3>
+      <p id="stat-users" data-value="0" class="text-3xl font-bold tracking-tight opacity-0"></p>
+    </div>
+  </div>
+
+  <!-- Steam Accounts -->
+  <div class="feature-card p-6 flex items-center gap-4">
+    <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 text-2xl">
+      🎮
+    </div>
+    <div>
+      <h3 class="text-sm uppercase text-white/60">Steam Accounts</h3>
+      <p id="stat-accounts" data-value="0" class="text-3xl font-bold tracking-tight opacity-0"></p>
+    </div>
+  </div>
+
+  <!-- Currently Boosting -->
+  <div class="feature-card p-6 flex items-center gap-4">
+    <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 text-2xl">
+      ⚡
+    </div>
+    <div>
+      <h3 class="text-sm uppercase text-white/60">Boosting Now</h3>
+      <p id="stat-boosting" data-value="0" class="text-3xl font-bold tracking-tight opacity-0"></p>
+
+    </div>
+  </div>
+
+  <!-- Optional: Average Accounts per User -->
+  <div class="feature-card p-6 flex items-center gap-4">
+    <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 text-2xl">
+      📊
+    </div>
+    <div>
+      <h3 class="text-sm uppercase text-white/60">Accounts per User</h3>
+      <p id="stat-avg" data-value="0" class="text-3xl font-bold tracking-tight opacity-0"></p>
+    </div>
+  </div>
+</div>
+
+    </section>
+
+    <section id="page-status" class="hidden px-6 pt-28 sm:pt-20 md:pt-16">
+  <div class="text-center mb-6">
+    <h1 class="section-heading text-center mb-6">
+      System Status Management
+    </h1>
+    <p class="text-white/70 mt-2">Manage incidents and track updates per issue with full history.</p>
+  </div>
+
+  <!-- Create / Update Status Form -->
+  <div class="max-w-3xl mx-auto feature-card p-6 mb-10">
+    <h2 class="text-xl font-semibold mb-4">Log New Incident</h2>
+    <form id="status-form" class="space-y-4">
+      <input type="hidden" id="status-id" />
+      <div>
+        <label class="block text-white/70 mb-1">Title</label>
+        <input id="status-title" class="w-full bg-white/10 border border-white/20 px-4 py-2 rounded text-white" />
+      </div>
+      <div>
+        <label class="block text-white/70 mb-1">Type</label>
+        <select id="status-type" class="w-full bg-white/10 border border-white/20 px-4 py-2 rounded text-white">
+          <option value="info">Info</option>
+          <option value="downtime">Downtime</option>
+          <option value="bug">Bug</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-white/70 mb-1">Update Message</label>
+        <textarea id="status-message" rows="3" class="w-full bg-white/10 border border-white/20 px-4 py-2 rounded text-white resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-white/70 mb-1">Affects (comma-separated)</label>
+        <input id="status-affects" class="w-full bg-white/10 border border-white/20 px-4 py-2 rounded text-white" />
+      </div>
+    <div>
+      <label class="block text-white/70 mb-1">Severity</label>
+      <select id="status-severity" class="w-full bg-white/10 border border-white/20 px-4 py-2 rounded text-white">
+        <option value="low">Low (Green)</option>
+        <option value="medium">Medium (Yellow)</option>
+        <option value="high">High (Red)</option>
+      </select>
+    </div>
+
+
+      <button type="submit" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white font-semibold">
+        Submit Update
+      </button>
+    </form>
+    <p id="status-response" class="text-sm mt-2 text-white/60 hidden">Status saved!</p>
+  </div>
+
+  <!-- Incident History Feed -->
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold text-white mb-4">Incident Timeline</h2>
+    <div id="status-feed" class="space-y-8"></div>
+  </div>
+</section>
+
+    <!-- Accounts -->
+    <section id="page-accounts" class="hidden px-6 pt-28 sm:pt-20 md:pt-16">
+      <div class="text-center mb-6">
+        <h1 class="section-heading text-center mb-6">
+          Accounts
+        </h1>
+      </div>
+      <!-- Search Bar -->
+      <div class="mb-6 flex justify-center">
+        <input id="account-search" type="text" placeholder="Search accounts..."
+          class="w-full max-w-md px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500" />
+      </div>
+      <!-- Cards Container -->
+      <div id="accounts-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
+      <div id="no-results" class="hidden text-center text-white/50">No accounts found.</div>
+      <!-- Pagination Controls -->
+      <div id="pagination" class="pagination"></div>
+    </section>
+
+<!-- Users -->
+<section id="page-users" class="hidden px-6 pt-28 sm:pt-20 md:pt-16">
+  <div class="text-center mb-6">
+    <h1 class="section-heading text-center mb-6">
+      Users
+    </h1>
+  </div>
+  <!-- Search Bar -->
+  <div class="mb-6 flex justify-center">
+    <input id="user-search" type="text" placeholder="Search users..."
+      class="w-full max-w-md px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-red-500" />
+  </div>
+  <!-- Cards Container -->
+  <div id="users-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
+  <div id="no-users" class="hidden text-center text-white/50">No users found.</div>
+  <div id="pagination-users" class="pagination mt-4"></div>
+</section>
+
+<!-- Licenses -->
+ 
+<section id="page-licenses" class="hidden px-6 pt-28 sm:pt-20 md:pt-16">
+  <div class="text-center mb-6">
+    <h1 class="section-heading text-center mb-6">
+      Licenses
+    </h1>
+  </div>
+  <!-- Search Bar -->
+  <div class="mb-5 flex justify-center">
+    <input id="license-search" type="text" placeholder="Search licenses..."
+      class="w-full max-w-md px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:ring-2 focus:ring-red-500" />
+  </div>
+  <!-- License Type Filter -->
+<div class="mb-4 flex justify-center">
+<select id="license-type-filter"
+  class="w-full max-w-xs px-3 py-2 bg-white/10 border border-white/20 rounded text-white appearance-none">
+  <option class="bg-black text-white" value="">All</option>
+  <option class="bg-black text-white" value="Free">Free</option>
+  <option class="bg-black text-white" value="Premium">Premium</option>
+  <option class="bg-black text-white" value="ULTRA">Ultra</option>
+  <option class="bg-black text-white" value="Free Extended">Free Extended</option>
+</select>
+
+</div>
+
+  <!-- Cards Container -->
+  <div id="licenses-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
+  <div id="no-licenses" class="hidden text-center text-white/50">No licenses found.</div>
+  <div id="pagination-licenses" class="pagination mt-4"></div>
+</section>
+
+
+
+    <!-- Settings -->
+<section id="page-overview" class="hidden px-6 pt-28 sm:pt-20 md:pt-16">
+  <div class="text-center mb-6">
+    <h1 class="section-heading text-center mb-6">
+      Host System Overview
+    </h1>
+  </div>
+
+  <!-- Host Info Grid -->
+  <div id="system-stats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-white">
+    <!-- Cards will be inserted via JS -->
+  </div>
+</section>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
+    <div class="bg-black/80 border border-white/20 rounded-2xl p-6 w-80 space-y-4 text-center relative">
+      <img src="/images/server.png"
+           alt="Server" class="mx-auto w-12 h-12 mb-2" />
+      <h2 class="text-xl font-semibold">Remove Steam Account?</h2>
+      <p class="text-white/70 text-sm">
+        Are you sure you want to remove this Steam account?<br>
+        This action is <span class="text-red-500 font-bold">irreversible</span>.
+      </p>
+      <div class="flex justify-center gap-4 mt-4">
+        <button id="confirm-no"
+                class="px-4 py-2 bg-white/10 border border-white/20 rounded hover:bg-white/20 transition">
+          Cancel
+        </button>
+        <button id="confirm-yes"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white transition">
+          Yes, remove
+        </button>
+      </div>
+      <button id="confirm-close" class="absolute top-3 right-3 text-white/50 hover:text-white">✕</button>
+    </div>
+  </div>
+
+    <footer class="text-white py-16 border-t border-white/10 mt-20">
+    <div class="max-w-7xl mx-auto text-center">
+      <p class="text-sm text-white/40">© 2025 Hour Booster</p>
+    </div>
+  </footer>
+
+  <style>
+  .stat-float {
+    position: absolute;
+    right: 0.5rem;
+    top: 0;
+    font-size: 0.875rem;
+    color: #4ade80; /* Tailwind green-400 */
+    font-weight: bold;
+    animation: floatUp 1s ease-out forwards;
+    pointer-events: none;
+    z-index: 10;
+  }
+  html, body {
+    background-color: #000; /* Black base background */
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+
+  body {
+    -webkit-overflow-scrolling: touch;
+    background-image: none !important;
+  }
+
+
+  @keyframes floatUp {
+    0%   { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-24px); }
+  }
+</style>
+
+
+
+<script>
+(() => {
+  const feedEl = document.getElementById('status-feed');
+  const formEl = document.getElementById('status-form');
+  const respEl = document.getElementById('status-response');
+  const idInput = document.getElementById('status-id');
+  const titleI  = document.getElementById('status-title');
+  const typeI   = document.getElementById('status-type');
+  const msgI    = document.getElementById('status-message');
+  const affI    = document.getElementById('status-affects');
+  const sevI    = document.getElementById('status-severity'); // NEW
+
+  function getSeverityColor(sev) {
+    switch (sev) {
+      case 'low': return 'border-green-500';
+      case 'medium': return 'border-yellow-500';
+      case 'high': return 'border-red-500';
+      default: return 'border-white/10';
+    }
+  }
+
+  async function loadStatuses() {
+    let data;
+    try {
+      const res = await fetch('/api/status');
+      data = await res.json();
+    } catch(err) {
+      console.error('Fetch status failed', err);
+      return;
+    }
+
+    feedEl.innerHTML = '';
+
+    data.updates.forEach((u, idx) => {
+      const borderClass = getSeverityColor(u.severity);
+      const box = document.createElement('div');
+      box.className = `feature-card p-4 rounded-lg space-y-2 ${borderClass}`;
+
+      const hdr = document.createElement('div');
+      hdr.className = 'flex justify-between items-center';
+      hdr.innerHTML = `
+        <h4 class="text-white font-bold">${u.title || 'Untitled Incident'}</h4>
+        <div class="flex gap-2">
+          <button data-cmd="edit"    data-idx="${idx}" class="text-yellow-300 hover:text-white text-sm">Edit</button>
+          <button data-cmd="resolve" data-idx="${idx}" class="text-green-400 hover:text-green-300 text-sm">Resolve</button>
+          <button data-cmd="delete"  data-idx="${idx}" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+        </div>
+      `;
+      box.appendChild(hdr);
+
+      const init = document.createElement('div');
+      init.className = 'mt-2 border-t border-white/10 pt-2';
+      init.innerHTML = `
+        <div class="text-xs text-white/60">${u.resolved ? 'Resolved' : 'Created'} — ${new Date(u.time).toLocaleString()}</div>
+        <div class="text-white text-sm">${u.message}</div>
+        ${u.affects?.length ? `<div class="text-xs text-white/50 mt-1">Affects: ${u.affects.join(', ')}</div>` : ''}
+      `;
+      box.appendChild(init);
+
+      (u.timeline || []).forEach(entry => {
+        const ev = document.createElement('div');
+        ev.className = 'mt-2 border-t border-white/10 pt-2';
+        ev.innerHTML = `
+          <div class="text-xs text-white/60">${entry.subtype || 'Update'} — ${new Date(entry.time).toLocaleString()}</div>
+          <div class="text-white text-sm">${entry.message}</div>
+          ${entry.affects?.length ? `<div class="text-xs text-white/50 mt-1">Affects: ${entry.affects.join(', ')}</div>` : ''}
+        `;
+        box.appendChild(ev);
+      });
+
+      feedEl.appendChild(box);
+    });
+  }
+
+  async function openEdit(idx) {
+    const res = await fetch('/api/status');
+    const { updates } = await res.json();
+    const u = updates[idx];
+    idInput.value = idx;
+    titleI.value  = u.title || '';
+    typeI.value   = u.type || 'info';
+    affI.value    = (u.affects || []).join(', ');
+    msgI.value    = '';
+    sevI.value    = u.severity || 'low';
+    formEl.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  formEl.addEventListener('submit', async e => {
+    e.preventDefault();
+    const idx = idInput.value;
+    const payload = {
+      title: titleI.value.trim(),
+      type: typeI.value,
+      message: msgI.value.trim(),
+      severity: sevI.value,
+      affects: affI.value.split(',').map(s => s.trim()).filter(Boolean)
+    };
+    let url = '/api/status';
+    if (idx) {
+      url = '/api/status/update';
+      payload.index = Number(idx);
+    }
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const ok = res.ok;
+    respEl.textContent = ok ? '✅ Saved!' : '❌ Error';
+    respEl.classList.remove('hidden');
+    setTimeout(() => respEl.classList.add('hidden'), 2000);
+    if (ok) {
+      formEl.reset();
+      idInput.value = '';
+      loadStatuses();
+    }
+  });
+
+  feedEl.addEventListener('click', async e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const cmd = b.dataset.cmd, idx = Number(b.dataset.idx);
+    if (cmd === 'edit') return openEdit(idx);
+    const path = cmd === 'resolve' ? '/api/status/resolve' : '/api/status/delete';
+    await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ index: idx })
+    });
+    loadStatuses();
+  });
+
+  document.addEventListener('DOMContentLoaded', loadStatuses);
+})();
+</script>
+
+
+
+  <script>
+    const socket = io();
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    socket.emit('requestSystemStats');
+  });
+
+  const systemInfoKeys = [
+    { key: 'hostname', label: 'Hostname' },
+    { key: 'localIp', label: 'Local IP Address' },
+    { key: 'platform', label: 'Platform' },
+    { key: 'arch', label: 'Architecture' },
+    { key: 'cpuModel', label: 'CPU' },
+    { key: 'cpuCores', label: 'CPU Cores' },
+    { key: 'cpuUsage', label: 'CPU Usage %' },
+    { key: 'ramTotal', label: 'Total RAM' },
+    { key: 'ramUsed', label: 'Used RAM' },
+    { key: 'ramUsage', label: 'RAM Usage %' },
+    { key: 'uptime', label: 'Uptime' },
+    { key: 'diskTotal', label: 'Disk Size' },
+    { key: 'diskUsed', label: 'Disk Used' },
+    { key: 'diskUsage', label: 'Disk Usage %' },
+    { key: 'cpuTemp', label: 'CPU Temperature' },
+    { key: 'gpuName', label: 'GPU' },
+    { key: 'gpuTemp', label: 'GPU Temperature' },
+    { key: 'gpuUsage', label: 'GPU Usage %' },
+    { key: 'networkSpeed', label: 'Network Speed' },
+    { key: 'macAddress', label: 'MAC Address' },
+  ];
+
+  socket.on('systemStats', (stats) => {
+    const container = document.getElementById("system-stats");
+    container.innerHTML = '';
+
+    // Special composite cards
+    const ramCard = document.createElement("div");
+    ramCard.className = "feature-card p-5 bg-white/5 rounded-lg border border-white/10 shadow-md backdrop-blur";
+    ramCard.innerHTML = `
+      <div class="text-sm uppercase text-white/60">RAM</div>
+      <div class="text-white text-sm">${stats.ramUsed} / ${stats.ramTotal}</div>
+      <div class="w-full h-3 bg-white/10 rounded overflow-hidden mt-1">
+        <div class="bg-red-500 h-full" style="width: ${stats.ramUsage || 0}%"></div>
+      </div>
+      <div class="text-xs text-white/50 mt-1">Usage: ${stats.ramUsage}%</div>
+    `;
+    container.appendChild(ramCard);
+
+    const cpuCard = document.createElement("div");
+    cpuCard.className = "feature-card p-5 bg-white/5 rounded-lg border border-white/10 shadow-md backdrop-blur";
+    cpuCard.innerHTML = `
+      <div class="text-sm uppercase text-white/60">CPU Load</div>
+      <div class="text-white text-sm">${stats.cpuModel}</div>
+      <div class="w-full h-3 bg-white/10 rounded overflow-hidden mt-1">
+        <div class="bg-yellow-400 h-full" style="width: ${stats.cpuUsage || 0}%"></div>
+      </div>
+      <div class="text-xs text-white/50 mt-1">Usage: ${stats.cpuUsage}% — Temp: ${stats.cpuTemp}</div>
+    `;
+    container.appendChild(cpuCard);
+
+    const diskCard = document.createElement("div");
+    diskCard.className = "feature-card p-5 bg-white/5 rounded-lg border border-white/10 shadow-md backdrop-blur";
+    diskCard.innerHTML = `
+      <div class="text-sm uppercase text-white/60">Disk</div>
+      <div class="text-white text-sm">${stats.diskUsed} / ${stats.diskTotal}</div>
+      <div class="w-full h-3 bg-white/10 rounded overflow-hidden mt-1">
+        <div class="bg-blue-500 h-full" style="width: ${stats.diskUsage || 0}%"></div>
+      </div>
+      <div class="text-xs text-white/50 mt-1">Usage: ${stats.diskUsage}%</div>
+    `;
+    container.appendChild(diskCard);
+
+    // Loop through remaining stats
+    systemInfoKeys.forEach(({ key, label }) => {
+      // Already rendered in composites
+      if (["cpuUsage", "cpuModel", "ramTotal", "ramUsed", "ramUsage", "diskTotal", "diskUsed", "diskUsage", "cpuTemp"].includes(key)) return;
+
+      const value = stats[key] || '—';
+      const card = document.createElement("div");
+      card.className = "feature-card p-5 flex flex-col gap-2 bg-white/5 rounded-lg border border-white/10 shadow-md backdrop-blur";
+
+      if (key === 'localIp') {
+        card.innerHTML = `
+          <div class="text-sm uppercase text-white/60">${label}</div>
+          <div class="text-white/20 text-sm transition-opacity duration-300 ease-in hover:text-white cursor-pointer">${value}</div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="text-sm uppercase text-white/60">${label}</div>
+          <div class="text-xl font-bold text-white truncate">${value}</div>
+        `;
+      }
+
+      container.appendChild(card);
+    });
+  });
+
+    // Sidebar open/close
+const sidebar = document.getElementById('mobile-sidebar');
+const openBtn = document.getElementById('open-sidebar');
+const closeBtn = document.getElementById('close-sidebar');
+
+openBtn?.addEventListener('click', () => {
+  sidebar.classList.remove('-translate-x-full');
+});
+
+closeBtn?.addEventListener('click', () => {
+  sidebar.classList.add('-translate-x-full');
+});
+
+// scrolling
+function toggleBodyScroll(lock) {
+  document.body.style.overflow = lock ? 'hidden' : '';
+}
+
+openBtn?.addEventListener('click', () => {
+  sidebar.classList.remove('-translate-x-full');
+  toggleBodyScroll(true);
+});
+
+closeBtn?.addEventListener('click', () => {
+  sidebar.classList.add('-translate-x-full');
+  toggleBodyScroll(false);
+});
+
+
+
+    // Tab navigation
+function showPage(page) {
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.target === page) btn.classList.add('active');
+  });
+
+  document.querySelectorAll('main > section').forEach(section => {
+    section.classList.add('hidden');
+  });
+
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.classList.remove('hidden');
+}
+
+// Handle internal navigation without reload
+function navigateTo(route) {
+  const page = route.split('/').pop() || 'dashboard';
+  showPage(page);
+  history.pushState({ page }, '', route);
+}
+
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const route = btn.dataset.route;
+    navigateTo(route);
+  });
+});
+
+window.addEventListener('popstate', (e) => {
+  const page = (e.state && e.state.page) || 'dashboard';
+  showPage(page);
+});
+
+// Initial page load
+  window.addEventListener('load', () => {
+    const loader = document.getElementById("loader");
+    if (loader) {
+      loader.style.opacity = "0";
+      loader.style.transition = "opacity 0.5s ease";
+      setTimeout(() => loader.remove(), 550);
+      document.body.classList.remove("overflow-hidden");
+    }
+  });
+  
+window.addEventListener('DOMContentLoaded', () => {
+  const path = window.location.pathname;
+  const page = path.split('/').pop() || 'dashboard';
+  showPage(page);
+});
+
+
+    // Accounts logic
+    const container    = document.getElementById('accounts-container');
+    const searchInput  = document.getElementById('account-search');
+    const noResults    = document.getElementById('no-results');
+    const paginationEl = document.getElementById('pagination');
+    let accountList = [], currentPage = 1, pageSize = 9;
+
+    socket.emit('requestAccounts');
+    socket.on('accounts', list => {
+      accountList = list;
+      renderPage();
+    });
+
+    searchInput.addEventListener('input', () => {
+      currentPage = 1;
+      renderPage();
+    });
+
+    function renderPage() {
+      const term      = searchInput.value.toLowerCase().trim();
+      const filtered = accountList
+        .filter(acc =>
+          acc.username.toLowerCase().includes(term) ||
+          (acc.discordOwnerId || '').toLowerCase().includes(term)
+        )
+        .sort((a, b) => (b.isRunning === true) - (a.isRunning === true)); // running first
+
+      const total     = filtered.length;
+      const maxPages  = Math.ceil(total / pageSize) || 1;
+      if (currentPage > maxPages) currentPage = maxPages;
+      const start     = (currentPage - 1) * pageSize;
+      const pageItems = filtered.slice(start, start + pageSize);
+
+      container.innerHTML = '';
+      if (!pageItems.length) {
+        noResults.classList.remove('hidden');
+      } else {
+        noResults.classList.add('hidden');
+        pageItems.forEach(acc => {
+          const card = document.createElement('div');
+          card.className = 'feature-card p-4 space-y-2 text-sm leading-relaxed';
+          card.innerHTML = `
+            <div><strong>${acc.username}</strong></div>
+            <div><strong>ID:</strong> ${acc.id}</div>
+            <div><strong>Owner:</strong> ${acc.discordOwnerId || '—'}</div>
+            <div class="flex gap-3 mt-2 items-center">
+              <button class="copy-id px-3 py-1 bg-white/10 border border-white/20 rounded hover:bg-white/20 text-xs" data-id="${acc.id}">
+                Copy ID
+              </button>
+              <button class="delete-btn px-3 py-1 bg-red-600 border border-red-600 rounded hover:bg-red text-xs" data-username="${acc.username}">
+                Remove
+              </button>
+              <span class="text-xs px-3 py-1 rounded ${acc.isRunning ? 'bg-green-500/20 text-green-400 border border-green-400/40' : 'bg-red-500/20 text-red-400 border border-red-400/40'}">
+                ${acc.isRunning ? 'Running' : 'Stopped'}
+              </span>
+            </div>`;
+          container.appendChild(card);
+        });
+      }
+
+      // Pagination controls
+      paginationEl.innerHTML = `
+        <button ${currentPage===1?'disabled':''} onclick="changePage(1)"
+          class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${currentPage===1?'text-white/40 cursor-not-allowed':'text-white hover:bg-white/20'}">«</button>
+        <button ${currentPage===1?'disabled':''} onclick="changePage(currentPage-1)"
+          class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${currentPage===1?'text-white/40 cursor-not-allowed':'text-white hover:bg-white/20'}">‹</button>
+        <span class="px-2 text-white/70">${currentPage} / ${maxPages}</span>
+        <button ${currentPage===maxPages?'disabled':''} onclick="changePage(currentPage+1)"
+          class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${currentPage===maxPages?'text-white/40 cursor-not-allowed':'text-white hover:bg-white/20'}">›</button>
+        <button ${currentPage===maxPages?'disabled':''} onclick="changePage(maxPages)"
+          class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${currentPage===maxPages?'text-white/40 cursor-not-allowed':'text-white hover:bg-white/20'}">»</button>
+      `;
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      renderPage();
+    }
+
+    // Handle card actions and modal
+    let pendingDelete = null;
+
+    container.addEventListener('click', handleAction);
+    searchInput.addEventListener('click', handleAction);
+
+    function handleAction(e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      if (btn.classList.contains('copy-id')) {
+        navigator.clipboard.writeText(btn.dataset.id);
+        btn.textContent = '✅';
+        setTimeout(() => btn.textContent = 'Copy ID', 1000);
+        return;
+      }
+
+      if (btn.classList.contains('toggle-account')) {
+        socket.emit('toggle-account', btn.dataset.username);
+        return;
+      }
+
+      if (btn.classList.contains('delete-btn')) {
+        pendingDelete = btn.dataset.username;
+        document.getElementById('confirm-modal').classList.remove('hidden');
+        return;
+      }
+    }
+
+
+    const licenseContainer = document.getElementById('licenses-container');
+const licenseSearch = document.getElementById('license-search');
+const licenseNoResults = document.getElementById('no-licenses');
+const licensePagination = document.getElementById('pagination-licenses');
+
+let licenseList = [], licensePage = 1, licensePageSize = 9;
+
+socket.emit('requestLicenses');
+socket.on('licenses', (list) => {
+  licenseList = list;
+  renderLicenses();
+});
+
+licenseSearch.addEventListener('input', () => {
+  licensePage = 1;
+  renderLicenses();
+});
+document.getElementById('license-type-filter').addEventListener('change', () => {
+  licensePage = 1;
+  renderLicenses();
+});
+
+
+function renderLicenses() {
+  const term = licenseSearch.value.toLowerCase().trim();
+  const selectedType = document.getElementById('license-type-filter').value;
+
+  const filtered = licenseList
+    .filter(l =>
+      (l.code.toLowerCase().includes(term) ||
+        (l.discordAccount?.discordId || '').toLowerCase().includes(term)) &&
+      (selectedType === '' || l.licenseType?.name === selectedType)
+    )
+    .sort((a, b) => a.isUsed - b.isUsed); // inactive first
+
+  const total = filtered.length;
+  const maxPages = Math.ceil(total / licensePageSize) || 1;
+  if (licensePage > maxPages) licensePage = maxPages;
+  const start = (licensePage - 1) * licensePageSize;
+  const pageItems = filtered.slice(start, start + licensePageSize);
+
+  licenseContainer.innerHTML = '';
+  if (!pageItems.length) {
+    licenseNoResults.classList.remove('hidden');
+  } else {
+    licenseNoResults.classList.add('hidden');
+    pageItems.forEach(lic => {
+      const card = document.createElement('div');
+      card.className = 'feature-card p-4 space-y-2 text-sm leading-relaxed';
+      card.innerHTML = `
+        <div><strong>License:</strong> ${lic.code}</div>
+        <div><strong>Plan:</strong> ${lic.licenseType?.name || '—'}</div>
+        <div><strong>Status:</strong>
+          <span class="${lic.isUsed ? 'text-red-400' : 'text-green-400'}">
+            ${lic.isUsed ? 'Unavailable' : 'Available'}
+          </span>
+        </div>
+        <div class="flex gap-3 mt-2">
+          <button class="delete-license px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs" data-code="${lic.code}">Remove</button>
+        </div>`;
+      licenseContainer.appendChild(card);
+    });
+  }
+
+  licensePagination.innerHTML = `
+    <button ${licensePage === 1 ? 'disabled' : ''} onclick="changeLicensePage(1)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 ${licensePage === 1 ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">«</button>
+    <button ${licensePage === 1 ? 'disabled' : ''} onclick="changeLicensePage(licensePage-1)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 ${licensePage === 1 ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">‹</button>
+    <span class="px-2 text-white/70">${licensePage} / ${maxPages}</span>
+    <button ${licensePage === maxPages ? 'disabled' : ''} onclick="changeLicensePage(licensePage+1)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 ${licensePage === maxPages ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">›</button>
+    <button ${licensePage === maxPages ? 'disabled' : ''} onclick="changeLicensePage(maxPages)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 ${licensePage === maxPages ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">»</button>`;
+}
+
+function changeLicensePage(page) {
+  licensePage = page;
+  renderLicenses();
+}
+
+// Optional: Button handling for license actions
+licenseContainer.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const code = btn.dataset.code;
+  if (btn.classList.contains('delete-license')) {
+    socket.emit('delete-license', code);
+  }
+});
+
+
+
+    // Users logic
+const userContainer    = document.getElementById('users-container');
+const userSearchInput  = document.getElementById('user-search');
+const userNoResults    = document.getElementById('no-users');
+const userPaginationEl = document.getElementById('pagination-users');
+let userList = [], userPage = 1, userPageSize = 9;
+
+socket.emit('requestUsers');
+socket.on('users', list => {
+  userList = list;
+  renderUsers();
+});
+
+userSearchInput.addEventListener('input', () => {
+  userPage = 1;
+  renderUsers();
+});
+
+function renderUsers() {
+  const term = userSearchInput.value.toLowerCase().trim();
+  const filtered = userList.filter(user =>
+    user.discordId.toLowerCase().includes(term) ||
+    (user.licenseCode || '').toLowerCase().includes(term)
+  );
+  const total = filtered.length;
+  const maxPages = Math.ceil(total / userPageSize) || 1;
+  if (userPage > maxPages) userPage = maxPages;
+  const start = (userPage - 1) * userPageSize;
+  const pageItems = filtered.slice(start, start + userPageSize);
+
+  userContainer.innerHTML = '';
+  if (!pageItems.length) {
+    userNoResults.classList.remove('hidden');
+  } else {
+    userNoResults.classList.add('hidden');
+    pageItems.forEach(user => {
+      const card = document.createElement('div');
+      card.className = 'feature-card p-4 space-y-2 text-sm leading-relaxed';
+      card.innerHTML = `
+        <div><strong>${user.discordId}</strong></div>
+        <div><strong>License:</strong> ${user.licenseCode || '—'}</div>
+        <div><strong>Status:</strong> ${user.isBanned ? 'Banned' : 'Active'}</div>
+        <div class="flex gap-3 mt-2">
+          <button class="revoke-license px-3 py-1 gradient-bg rounded text-xs" data-id="${user.discordId}">Revoke</button>
+          <button class="delete-user px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs" data-id="${user.discordId}">Remove</button>
+        </div>`;
+      userContainer.appendChild(card);
+    });
+  }
+
+          //   <button class="ban-user px-3 py-1 bg-white/10 border border-white/20 rounded text-xs hover:bg-white/20" data-id="${user.discordId}">
+          //   ${user.isBanned ? 'Unban' : 'Ban'}
+          // </button>
+
+  userPaginationEl.innerHTML = `
+    <button ${userPage === 1 ? 'disabled' : ''} onclick="changeUserPage(1)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${userPage === 1 ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">«</button>
+    <button ${userPage === 1 ? 'disabled' : ''} onclick="changeUserPage(userPage-1)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${userPage === 1 ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">‹</button>
+    <span class="px-2 text-white/70">${userPage} / ${maxPages}</span>
+    <button ${userPage === maxPages ? 'disabled' : ''} onclick="changeUserPage(userPage+1)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${userPage === maxPages ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">›</button>
+    <button ${userPage === maxPages ? 'disabled' : ''} onclick="changeUserPage(maxPages)"
+      class="px-3 py-1 text-lg rounded bg-white/10 border border-white/20 transition ${userPage === maxPages ? 'text-white/40 cursor-not-allowed' : 'text-white hover:bg-white/20'}">»</button>
+  `;
+}
+
+function changeUserPage(page) {
+  userPage = page;
+  renderUsers();
+}
+
+// User button actions
+userContainer.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (btn.classList.contains('revoke-license')) {
+    socket.emit('revoke-user', id);
+  }
+  if (btn.classList.contains('ban-user')) {
+    socket.emit('ban-user', id); // Make sure server toggles ban/unban
+  }
+  if (btn.classList.contains('delete-user')) {
+    socket.emit('delete-user', id);
+  }
+});
+
+
+    document.getElementById('confirm-no').onclick = () => {
+      pendingDelete = null;
+      document.getElementById('confirm-modal').classList.add('hidden');
+    };
+    document.getElementById('confirm-close').onclick = () => {
+      pendingDelete = null;
+      document.getElementById('confirm-modal').classList.add('hidden');
+    };
+    document.getElementById('confirm-yes').onclick = () => {
+      if (!pendingDelete) return;
+      socket.emit('delete-account', pendingDelete);
+      pendingDelete = null;
+      document.getElementById('confirm-modal').classList.add('hidden');
+    };
+
+    // Update list on server broadcast
+    socket.on('accounts', list => {
+      accountList = list;
+      renderPage();
+    });
+
+function animateStat(id, value, decimals = 0) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const container = el.parentElement;
+  const prev = parseFloat(el.dataset.value);
+  const start = isNaN(prev) ? 0 : prev;
+  const end = parseFloat(value.toFixed(decimals));
+
+  const diff = end - start;
+  if (diff === 0) return;
+
+  if (diff > 0.01) {
+    showStatFloat(container, `+${(diff).toFixed(decimals)}`);
+  }
+
+    if (diff > -0.01) {
+    showStatFloat(container, `-${(diff).toFixed(decimals)}`);
+  }
+
+  el.dataset.value = end;
+  const duration = 1500;
+  const frameRate = 60;
+  const steps = Math.ceil(duration / (1000 / frameRate));
+  const step = diff / steps;
+
+  let current = start;
+  let count = 0;
+
+  el.classList.remove('opacity-0');
+
+  function tick() {
+    if (count >= steps) {
+      el.textContent = end.toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+      return;
+    }
+
+    current += step;
+    count++;
+    el.textContent = current.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  tick();
+}
+
+
+
+
+function showStatFloat(container, text) {
+  const floatEl = document.createElement('div');
+  floatEl.className = 'stat-float';
+  floatEl.textContent = text;
+
+  container.style.position = 'relative';
+  container.appendChild(floatEl);
+
+  setTimeout(() => {
+    floatEl.remove();
+  }, 1000);
+}
+
+
+
+
+socket.emit('requestStats');
+// setInterval(() => {
+//   socket.emit('requestStats');
+// }, 20000); // every 20 seconds
+
+socket.on('stats', ({ totalUsers, totalAccounts, boosting }) => {
+  totalUsers = Number(totalUsers) || 0;
+  totalAccounts = Number(totalAccounts) || 0;
+  boosting = Number(boosting) || 0;
+
+  animateStat('stat-users', totalUsers);
+  animateStat('stat-accounts', totalAccounts);
+  animateStat('stat-boosting', boosting);
+
+  const avg = totalUsers > 0 ? totalAccounts / totalUsers : 0;
+  animateStat('stat-avg', avg, 1);
+});
+
+
+    
+  </script>
+</body>
+</html>
